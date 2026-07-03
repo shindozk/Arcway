@@ -1,0 +1,33 @@
+{
+  "name": "arcway",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "env -u LD_LIBRARY_PATH vite",
+    "build": "tsc && env -u LD_LIBRARY_PATH vite build",
+    "preview": "env -u LD_LIBRARY_PATH vite preview",
+    "tauri": "env -u LD_LIBRARY_PATH GST_DEBUG=0 tauri"
+  },
+  "dependencies": {
+    "@material/material-color-utilities": "^0.3.0",
+    "@material/web": "^2.4.1",
+    "@mui/icons-material": "^7.3.11",
+    "@mui/material": "^7.3.11",
+    "@supabase/supabase-js": "^2.110.0",
+    "@tauri-apps/api": "^2.11.1",
+    "@tauri-apps/plugin-shell": "^2.3.5",
+    "esbuild": "^0.25.12",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.11.4",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.19"
+  }
+}

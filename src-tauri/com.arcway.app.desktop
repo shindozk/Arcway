@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Arcway
+Comment=Arch Linux App Store
+Exec=arcway %u
+Icon=com.arcway.app
+Terminal=false
+Categories=Utility;System;
+Keywords=flatpak;aur;package;manager;arch;

@@ -1,0 +1,28 @@
+app-id: com.arcway.app
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+command: arcway
+
+finish-args:
+  - --share=ipc
+  - --socket=x11
+  - --socket=wayland
+  - --socket=pulseaudio
+  - --share=network
+  - --device=all
+  - --talk-name=org.freedesktop.secrets
+  - --filesystem=home
+  - --env=LD_LIBRARY_PATH=
+
+modules:
+  - name: arcway
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 arcway /app/bin/arcway
+      - install -Dm644 com.arcway.app.desktop /app/share/applications/com.arcway.app.desktop
+      - install -Dm644 com.arcway.app.metainfo.xml /app/share/metainfo/com.arcway.app.metainfo.xml
+      - install -Dm644 icon.png /app/share/icons/hicolor/256x256/apps/com.arcway.app.png
+    sources:
+      - type: dir
+        path: build-files

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/dev/crates/tauri-utils/schema/capability.json",
+  "identifier": "default",
+  "description": "Default capabilities for Arcway",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "shell:default",
+    "shell:allow-open",
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        { "name": "flatpak", "cmd": "flatpak", "args": true },
+        { "name": "yay", "cmd": "yay", "args": true },
+        { "name": "paru", "cmd": "paru", "args": true }
+      ]
+    }
+  ]
+}

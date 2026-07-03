@@ -1,0 +1,67 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+dist/
+build/
+
+# Rust / Cargo
+src-tauri/target/
+src-tauri/Cargo.lock
+*.pdb
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+*.enc
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+src-tauri/logs/
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Tauri generated
+src-tauri/gen/
+src-tauri/icons/*.png
+src-tauri/icons/*.ico
+src-tauri/icons/*.icns
+
+# Testing
+coverage/
+
+# AppImage artifacts
+src-tauri/target/release/bundle/appimage/*.AppImage
+src-tauri/target/release/bundle/appimage/*.zsync
+src-tauri/target/release/bundle/appimage_deb/
+
+# Flatpak artifacts
+flatpak/build-dir/
+flatpak/repo/
+flatpak/.flatpak-builder/
+flatpak/build-files/
+flatpak/*.flatpak
+
+# Misc
+*.tgz
+*.tar.gz
+.cache/
