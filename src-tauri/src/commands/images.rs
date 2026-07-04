@@ -1,12 +1,12 @@
+use crate::auth::config::SupabaseConfig;
 use crate::errors::AppError;
 use reqwest::multipart;
 use serde::Deserialize;
 
 fn get_freeimage_key() -> Result<String, AppError> {
-    std::env::var("FREEIMAGE_API_KEY")
-        .map_err(|_| AppError::CommandFailed(
-            "FREEIMAGE_API_KEY environment variable not set. \
-             Set it in your .env file or environment to enable image uploads.".to_string()
+    SupabaseConfig::get_freeimage_api_key()
+        .ok_or_else(|| AppError::CommandFailed(
+            "FREEIMAGE_API_KEY not found. Set it in .env or enable Supabase config.".to_string()
         ))
 }
 

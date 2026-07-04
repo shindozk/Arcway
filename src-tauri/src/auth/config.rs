@@ -7,10 +7,15 @@ use rand::RngCore;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
+/// XOR key used for build-time encryption (must match build.rs)
+const EMBEDDED_CRYPT_KEY: &[u8] = b"arcway-supabase-embedded-config-v1";
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SupabaseConfig {
     pub url: String,
     pub anon_key: String,
+    #[serde(default)]
+    pub freeimage_api_key: String,
 }
 
 impl Default for SupabaseConfig {
@@ -18,6 +23,7 @@ impl Default for SupabaseConfig {
         Self {
             url: String::new(),
             anon_key: String::new(),
+            freeimage_api_key: String::new(),
         }
     }
 }
@@ -90,6 +96,20 @@ fn decrypt(data: &[u8], key: &[u8; 32]) -> Result<Vec<u8>, String> {
         .map_err(|e| format!("Decryption failed (wrong key or corrupted data): {}", e))
 }
 
+/// Decrypt the build-time embedded config blob.
+fn decrypt_embedded_config() -> Option<SupabaseConfig> {
+    static EMBEDDED: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/supabase_config.bin"));
+    if EMBEDDED.is_empty() {
+        return None;
+    }
+    let decrypted: Vec<u8> = EMBEDDED
+        .iter()
+        .enumerate()
+        .map(|(i, &b)| b ^ EMBEDDED_CRYPT_KEY[i % EMBEDDED_CRYPT_KEY.len()])
+        .collect();
+    serde_json::from_slice::<SupabaseConfig>(&decrypted).ok()
+}
+
 impl SupabaseConfig {
     fn config_path() -> PathBuf {
         dirs::data_local_dir()
@@ -99,6 +119,14 @@ impl SupabaseConfig {
     }
 
     pub fn load() -> Self {
+        // Priority 0: Embedded config (compiled into binary from .env at build time)
+        if let Some(config) = decrypt_embedded_config() {
+            if config.is_configured() {
+                log::info!("Loaded Supabase config from embedded binary");
+                return config;
+            }
+        }
+
         // Priority 1: Environment variables (from .env file loaded by dotenvy)
         let env_url = std::env::var("SUPABASE_URL").ok();
         let env_key = std::env::var("SUPABASE_ANON_KEY").ok();
@@ -106,7 +134,7 @@ impl SupabaseConfig {
         if let (Some(url), Some(key)) = (env_url, env_key) {
             if !url.is_empty() && !key.is_empty() && !url.contains("your-project") {
                 log::info!("Loaded Supabase config from environment variables");
-                let config = SupabaseConfig { url, anon_key: key };
+                let config = SupabaseConfig { url, anon_key: key, freeimage_api_key: String::new() };
                 // Persist to encrypted file for offline use
                 let _ = config.save();
                 return config;
@@ -166,5 +194,16 @@ impl SupabaseConfig {
             && !self.anon_key.is_empty()
             && !self.url.contains("your-project")
             && !self.url.contains("your-anon-key")
+    }
+
+    /// Get FreeImage API key: try embedded config first, then env var.
+    pub fn get_freeimage_api_key() -> Option<String> {
+        if let Some(config) = decrypt_embedded_config() {
+            if !config.freeimage_api_key.is_empty() {
+                return Some(config.freeimage_api_key);
+            }
+        }
+        // Fallback to env var
+        std::env::var("FREEIMAGE_API_KEY").ok().filter(|k| !k.is_empty())
     }
 }
