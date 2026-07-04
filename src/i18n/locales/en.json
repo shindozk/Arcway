@@ -205,5 +205,8 @@
   "rating.rateThis": "Rate this app",
   "rating.thanks": "Thanks for rating!",
   "rating.failed": "Failed to save rating",
-  "rating.loginRequired": "Sign in to rate this app"
+  "rating.loginRequired": "Sign in to rate this app",
+  "serviceUnavailable.title": "Not available",
+  "serviceUnavailable.description": "This feature has not been configured on the server yet.",
+  "serviceUnavailable.retry": "Retry"
 }

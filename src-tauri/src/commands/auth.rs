@@ -40,6 +40,35 @@ pub struct AuthState {
     pub session: SessionManager,
 }
 
+impl AuthState {
+    /// Returns a valid access token, refreshing if expired.
+    /// This is used by all commands that need an authenticated request.
+    pub async fn ensure_valid_token(&self) -> Result<String, AppError> {
+        // Try current token first
+        if let Some(token) = self.session.get_token() {
+            return Ok(token);
+        }
+
+        // Access token expired — try refresh
+        if let Some(refresh) = self.session.get_refresh_token() {
+            match self.supabase.refresh_token(&refresh).await {
+                Ok(response) => {
+                    self.session.save_session(&response);
+                    log::info!("Token refreshed successfully via ensure_valid_token");
+                    Ok(response.access_token)
+                }
+                Err(e) => {
+                    log::warn!("Token refresh failed in ensure_valid_token: {}", e);
+                    self.session.clear_session();
+                    Err(AppError::CommandFailed("Session expired. Please log in again.".to_string()))
+                }
+            }
+        } else {
+            Err(AppError::CommandFailed("Not authenticated".to_string()))
+        }
+    }
+}
+
 #[tauri::command]
 pub async fn register(
     email: String,

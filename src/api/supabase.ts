@@ -3,6 +3,12 @@ import { createLogger } from '../utils/logger';
 
 const log = createLogger('supabase-api');
 
+// ── Error detection ────────────────────────────────────────────────────────
+export function isTableNotFoundError(err: unknown): boolean {
+  const msg = String(err);
+  return msg.includes('PGRST205') || msg.includes('Could not find the table');
+}
+
 // ── Types (matching Rust structs) ──────────────────────────────────────────
 
 export interface Comment {

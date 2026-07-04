@@ -29,10 +29,7 @@ pub async fn sb_add_comment(
         .session
         .get_user()
         .ok_or_else(|| AppError::CommandFailed("Not authenticated".to_string()))?;
-    let token = state
-        .session
-        .get_token()
-        .ok_or_else(|| AppError::CommandFailed("Not authenticated".to_string()))?;
+    let token = state.ensure_valid_token().await?;
 
     let user_name = user
         .display_name
@@ -61,10 +58,7 @@ pub async fn sb_update_comment(
     content: String,
     state: State<'_, AuthState>,
 ) -> Result<Comment, AppError> {
-    let token = state
-        .session
-        .get_token()
-        .ok_or_else(|| AppError::CommandFailed("Not authenticated".to_string()))?;
+    let token = state.ensure_valid_token().await?;
 
     state
         .supabase
@@ -78,10 +72,7 @@ pub async fn sb_delete_comment(
     comment_id: String,
     state: State<'_, AuthState>,
 ) -> Result<(), AppError> {
-    let token = state
-        .session
-        .get_token()
-        .ok_or_else(|| AppError::CommandFailed("Not authenticated".to_string()))?;
+    let token = state.ensure_valid_token().await?;
 
     state
         .supabase
@@ -134,10 +125,7 @@ pub async fn sb_set_rating(
         .session
         .get_user()
         .ok_or_else(|| AppError::CommandFailed("Not authenticated".to_string()))?;
-    let token = state
-        .session
-        .get_token()
-        .ok_or_else(|| AppError::CommandFailed("Not authenticated".to_string()))?;
+    let token = state.ensure_valid_token().await?;
 
     state
         .supabase

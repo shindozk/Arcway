@@ -50,18 +50,25 @@ src-tauri/icons/*.icns
 coverage/
 
 # AppImage artifacts
-src-tauri/target/release/bundle/appimage/*.AppImage
-src-tauri/target/release/bundle/appimage/*.zsync
-src-tauri/target/release/bundle/appimage_deb/
+squashfs-root/
+src-tauri/target/release/bundle/
+*.AppImage
+*.zsync
 
-# Flatpak artifacts
+# Flatpak build artifacts (keep flatpak/com.arcway.app.yml manifest)
 flatpak/build-dir/
 flatpak/repo/
 flatpak/.flatpak-builder/
 flatpak/build-files/
 flatpak/*.flatpak
 
+# Supabase local config (encrypted credentials)
+supabase.enc
+supabase-migrations/
+
 # Misc
 *.tgz
 *.tar.gz
+*.deb
+*.rpm
 .cache/

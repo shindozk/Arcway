@@ -4,12 +4,19 @@ use std::fs;
 use std::path::PathBuf;
 use std::sync::Mutex;
 
+/// Session stays valid for 15 days. After that, user must re-login.
+const SESSION_MAX_DAYS: i64 = 15;
+const SESSION_MAX_SECONDS: i64 = SESSION_MAX_DAYS * 24 * 60 * 60;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct SessionData {
     access_token: String,
     refresh_token: String,
     user: UserInfo,
+    /// When the access_token expires (short-lived, ~1 hour)
     expires_at: i64,
+    /// When the session was created. Used to enforce the 15-day lifetime.
+    session_created_at: i64,
 }
 
 pub struct SessionManager {
@@ -19,17 +26,28 @@ pub struct SessionManager {
 
 impl SessionManager {
     pub fn load_from_file(path: &PathBuf) -> Self {
+        let now = chrono::Utc::now().timestamp();
         let data = if path.exists() {
             fs::read_to_string(path)
                 .ok()
                 .and_then(|s| serde_json::from_str::<SessionData>(&s).ok())
-                .filter(|d| d.expires_at > chrono::Utc::now().timestamp())
+                .filter(|d| {
+                    // Keep session if within 15-day lifetime
+                    // (even if access_token expired — will be refreshed on use)
+                    d.session_created_at + SESSION_MAX_SECONDS > now
+                })
         } else {
             None
         };
 
-        if data.is_some() {
-            log::info!("Loaded valid session from file");
+        if let Some(ref d) = data {
+            let age_days = (now - d.session_created_at) / 86400;
+            let token_valid = d.expires_at > now;
+            log::info!(
+                "Loaded session from file (age: {}d, access_token: {})",
+                age_days,
+                if token_valid { "valid" } else { "expired (will refresh)" }
+            );
         }
 
         Self {
@@ -39,12 +57,24 @@ impl SessionManager {
     }
 
     pub fn save_session(&self, response: &AuthResponse) {
-        let expires_at = chrono::Utc::now().timestamp() + response.expires_in;
+        let now = chrono::Utc::now().timestamp();
+        let expires_at = now + response.expires_in;
+
+        // Preserve session_created_at from existing session (for refreshes)
+        // or set to now (for fresh logins)
+        let session_created_at = {
+            let data = self.data.lock().unwrap();
+            data.as_ref()
+                .map(|d| d.session_created_at)
+                .unwrap_or(now)
+        };
+
         let session = SessionData {
             access_token: response.access_token.clone(),
             refresh_token: response.refresh_token.clone(),
             user: response.user.clone(),
             expires_at,
+            session_created_at,
         };
 
         *self.data.lock().unwrap() = Some(session);
@@ -90,7 +120,8 @@ impl SessionManager {
     pub fn get_user(&self) -> Option<UserInfo> {
         let data = self.data.lock().unwrap();
         data.as_ref().and_then(|d| {
-            if d.expires_at > chrono::Utc::now().timestamp() {
+            let now = chrono::Utc::now().timestamp();
+            if d.session_created_at + SESSION_MAX_SECONDS > now {
                 Some(d.user.clone())
             } else {
                 None
@@ -98,8 +129,14 @@ impl SessionManager {
         })
     }
 
+    /// Returns true if we have a valid refresh token within the 15-day window.
+    /// The access token may be expired — that's OK, it will be refreshed.
     pub fn is_authenticated(&self) -> bool {
-        self.get_token().is_some()
+        let data = self.data.lock().unwrap();
+        data.as_ref().map_or(false, |d| {
+            let now = chrono::Utc::now().timestamp();
+            !d.refresh_token.is_empty() && d.session_created_at + SESSION_MAX_SECONDS > now
+        })
     }
 
     pub fn clear_session(&self) {
@@ -111,7 +148,14 @@ impl SessionManager {
 
     pub fn get_refresh_token(&self) -> Option<String> {
         let data = self.data.lock().unwrap();
-        data.as_ref().map(|d| d.refresh_token.clone())
+        data.as_ref().and_then(|d| {
+            let now = chrono::Utc::now().timestamp();
+            if d.session_created_at + SESSION_MAX_SECONDS > now {
+                Some(d.refresh_token.clone())
+            } else {
+                None
+            }
+        })
     }
 
     fn save_to_file(&self, path: &PathBuf) {

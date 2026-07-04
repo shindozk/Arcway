@@ -22,6 +22,15 @@ fn get_db_path() -> PathBuf {
 }
 
 fn main() {
+    // Fix WebKitGTK GBM buffer allocation failures on some Linux GPU configs
+    // (causes white/blank screen in AppImage)
+    #[cfg(target_os = "linux")]
+    {
+        if std::env::var("WEBKIT_DISABLE_DMABUF_RENDERER").is_err() {
+            std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+        }
+    }
+
     let _ = dotenvy::dotenv();
 
     tauri::Builder::default()

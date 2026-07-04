@@ -1,0 +1,11 @@
+[build]
+jobs = 2
+rustc = "rustc"
+rustflags = ["-Ccodegen-units=1"]
+
+[net]
+retry = 2
+timeout = 60
+
+[registries.crates-io]
+protocol = "sparse"

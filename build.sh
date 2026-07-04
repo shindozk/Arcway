@@ -139,8 +139,16 @@ build_flatpak() {
 
   if ! flatpak list --runtime --columns=ref 2>/dev/null | grep -q "org.freedesktop.Platform//24.08"; then
     warn "freedesktop Platform runtime not installed, attempting to install..."
-    flatpak install -y --runtime flathub org.freedesktop.Platform//24.08 2>/dev/null || {
+    flatpak install -y --system --runtime flathub org.freedesktop.Platform//24.08 2>/dev/null || {
       fail "Could not install freedesktop runtime"
+      return 1
+    }
+  fi
+
+  if ! flatpak list --sdk --columns=ref 2>/dev/null | grep -q "org.freedesktop.Sdk//24.08"; then
+    warn "freedesktop SDK not installed, attempting to install..."
+    flatpak install -y --system flathub org.freedesktop.Sdk//24.08 2>/dev/null || {
+      fail "Could not install freedesktop SDK"
       return 1
     }
   fi
@@ -195,11 +203,11 @@ METAINFO
     ok "Generated minimal metainfo.xml"
   fi
 
-  # Copy icon
+  # Copy icon (resize to 512x512 max for Flatpak validation)
   if [[ -f "$ROOT/src/assets/logo/arcway_logo.png" ]]; then
-    cp "$ROOT/src/assets/logo/arcway_logo.png" "$FLATPAK_BUILD_FILES/icon.png"
+    convert "$ROOT/src/assets/logo/arcway_logo.png" -resize 512x512 "$FLATPAK_BUILD_FILES/icon.png"
   elif [[ -f "$ROOT/src-tauri/icons/icon.png" ]]; then
-    cp "$ROOT/src-tauri/icons/icon.png" "$FLATPAK_BUILD_FILES/icon.png"
+    convert "$ROOT/src-tauri/icons/icon.png" -resize 512x512 "$FLATPAK_BUILD_FILES/icon.png"
   else
     warn "No icon found — Flatpak may not have an icon"
   fi

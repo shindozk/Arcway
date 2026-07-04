@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="https://iili.io/CaXQof2.png" alt="Arcway Logo" width="120" />
+
 # Arcway
 
 **A modern app store for Arch Linux.**
@@ -14,6 +16,18 @@ Flatpak · AUR · Paru — all in one place.
 
 ---
 
+## Screenshots
+
+<div align="center">
+
+| Home | Package Details | Search |
+|:---:|:---:|:---:|
+| ![Home](https://iili.io/CaXZT1p.png) | ![Details](https://iili.io/Cahz8be.png) | ![Search](https://iili.io/CahISYN.png) |
+
+</div>
+
+---
+
 ## Features
 
 - 🔍 **Unified search** — Flathub + AUR in one results page
@@ -22,6 +36,8 @@ Flatpak · AUR · Paru — all in one place.
 - 🌍 **i18n** — 21 languages
 - 🔐 **User accounts** — Sync settings across devices
 - ⌨️ **Keyboard shortcuts** — `Ctrl+K` search, `Ctrl+1-5` navigate
+- 💬 **Ratings & comments** — Community-driven package reviews
+- 📱 **AppImage support** — Install and manage AppImages
 
 ## Requirements
 
@@ -73,7 +89,7 @@ npm run tauri dev
 |-------|-----------|
 | Frontend | React 19, TypeScript, Vite |
 | Backend | Rust, Tauri 2 |
-| UI | Material Design 3, MUI |
+| UI | Material Design 3 |
 | State | Zustand |
 | Package managers | Flatpak, AUR (yay/paru) |
 

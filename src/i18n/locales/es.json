@@ -58,15 +58,6 @@
   "detail.homepage": "Página Principal",
   "detail.reportIssue": "Reportar Problema",
   "detail.installVia": "Instalar vía",
-  "detail.rating": "Calificación",
-  "detail.ratingDesc": "Califica esta app de 0 a 10",
-  "detail.yourRating": "Tu calificación: {score}/10",
-  "detail.comments": "Comentarios ({count})",
-  "detail.noComments": "Sin comentarios aún. ¡Sé el primero en comentar!",
-  "detail.writeComment": "Escribe un comentario...",
-  "detail.yourName": "Tu nombre (opcional)",
-  "detail.postComment": "Publicar Comentario",
-  "detail.posting": "Publicando...",
   "settings.title": "Configuración",
   "settings.appearance": "Apariencia",
   "settings.darkMode": "Modo Oscuro",
@@ -214,5 +205,8 @@
   "home.tabTrending": "Tendencia",
   "home.tabPopular": "Popular",
   "home.tabNew": "Nuevos",
-  "home.tabUpdated": "Actualizados"
+  "home.tabUpdated": "Actualizados",
+  "serviceUnavailable.title": "No disponible",
+  "serviceUnavailable.description": "Esta función aún no ha sido configurada en el servidor.",
+  "serviceUnavailable.retry": "Reintentar"
 }
