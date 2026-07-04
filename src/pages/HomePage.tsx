@@ -11,6 +11,7 @@ import {
   getRecentlyUpdatedPackages,
   getRecentlyAddedPackages,
 } from '../api/packages';
+import { hasCache, TTL } from '../utils/cache';
 import { useI18n } from '../i18n';
 
 const BATCH_SIZE = 18;
@@ -185,8 +186,8 @@ export default function HomePage() {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { t } = useI18n();
 
-  const fetchTabData = useCallback(async (tabId: TabId) => {
-    setTabLoading(true);
+  const fetchTabData = useCallback(async (tabId: TabId, skipLoading = false) => {
+    if (!skipLoading) setTabLoading(true);
     try {
       let data: Package[];
       switch (tabId) {
@@ -216,9 +217,15 @@ export default function HomePage() {
     }
   }, [t]);
 
-  // Initial load
+  // Check if we have cached data for the initial tab — skip loading skeleton
   useEffect(() => {
-    fetchTabData('trending');
+    const cacheKey = 'trending:60';
+    if (hasCache(cacheKey, TTL.HOME_TAB)) {
+      // Data is cached — call fetch but skip the loading skeleton
+      fetchTabData('trending', true);
+    } else {
+      fetchTabData('trending');
+    }
   }, [fetchTabData]);
 
   // Tab change - only set tabLoading, not full loading to avoid hiding all apps
@@ -226,9 +233,18 @@ export default function HomePage() {
     if (tabId === activeTab) return;
     playSound('tap');
     setActiveTab(tabId);
-    setTabLoading(true);
     setError(null);
-    fetchTabData(tabId);
+    // Skip skeleton if this tab's data is already cached
+    const cacheKey = tabId === 'popular' ? 'featured:60'
+      : tabId === 'trending' ? 'trending:60'
+      : tabId === 'new' ? 'recentlyAdded:60'
+      : 'recentlyUpdated:60';
+    if (hasCache(cacheKey, TTL.HOME_TAB)) {
+      fetchTabData(tabId, true);
+    } else {
+      setTabLoading(true);
+      fetchTabData(tabId);
+    }
   }, [activeTab, fetchTabData]);
 
   // Infinite scroll observer

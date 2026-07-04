@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { PackageSource, type Package } from '../types/package';
 import { createLogger } from '../utils/logger';
+import { cached, TTL } from '../utils/cache';
 
 const log = createLogger('api');
 
@@ -8,20 +9,25 @@ export async function searchPackages(
   query: string,
   sources?: PackageSource[]
 ): Promise<Package[]> {
-  log.info(`search("${query}", sources=${sources?.join(',') ?? 'all'})`);
-  const result = await invoke<Package[]>('search_packages', {
-    query,
-    sources: sources?.map((s) => s),
+  const key = `search:${query}:${sources?.join(',') ?? 'all'}`;
+  return cached(key, TTL.SEARCH, async () => {
+    log.info(`search("${query}", sources=${sources?.join(',') ?? 'all'})`);
+    const result = await invoke<Package[]>('search_packages', {
+      query,
+      sources: sources?.map((s) => s),
+    });
+    log.info(`search => ${result.length} results`);
+    return result;
   });
-  log.info(`search => ${result.length} results`);
-  return result;
 }
 
 export async function getFeaturedPackages(limit: number = 20): Promise<Package[]> {
-  log.info(`getFeatured(limit=${limit})`);
-  const result = await invoke<Package[]>('get_featured_packages', { limit });
-  log.info(`getFeatured => ${result.length} apps`);
-  return result;
+  return cached(`featured:${limit}`, TTL.HOME_TAB, async () => {
+    log.info(`getFeatured(limit=${limit})`);
+    const result = await invoke<Package[]>('get_featured_packages', { limit });
+    log.info(`getFeatured => ${result.length} apps`);
+    return result;
+  });
 }
 
 export async function getScreenshots(
@@ -95,24 +101,30 @@ export async function getFlathubDetail(appId: string): Promise<Record<string, un
 }
 
 export async function getTrendingPackages(limit: number = 30): Promise<Package[]> {
-  log.info(`getTrending(limit=${limit})`);
-  const result = await invoke<Package[]>('get_trending_packages', { limit });
-  log.info(`getTrending => ${result.length} apps`);
-  return result;
+  return cached(`trending:${limit}`, TTL.HOME_TAB, async () => {
+    log.info(`getTrending(limit=${limit})`);
+    const result = await invoke<Package[]>('get_trending_packages', { limit });
+    log.info(`getTrending => ${result.length} apps`);
+    return result;
+  });
 }
 
 export async function getRecentlyUpdatedPackages(limit: number = 30): Promise<Package[]> {
-  log.info(`getRecentlyUpdated(limit=${limit})`);
-  const result = await invoke<Package[]>('get_recently_updated_packages', { limit });
-  log.info(`getRecentlyUpdated => ${result.length} apps`);
-  return result;
+  return cached(`recentlyUpdated:${limit}`, TTL.HOME_TAB, async () => {
+    log.info(`getRecentlyUpdated(limit=${limit})`);
+    const result = await invoke<Package[]>('get_recently_updated_packages', { limit });
+    log.info(`getRecentlyUpdated => ${result.length} apps`);
+    return result;
+  });
 }
 
 export async function getRecentlyAddedPackages(limit: number = 30): Promise<Package[]> {
-  log.info(`getRecentlyAdded(limit=${limit})`);
-  const result = await invoke<Package[]>('get_recently_added_packages', { limit });
-  log.info(`getRecentlyAdded => ${result.length} apps`);
-  return result;
+  return cached(`recentlyAdded:${limit}`, TTL.HOME_TAB, async () => {
+    log.info(`getRecentlyAdded(limit=${limit})`);
+    const result = await invoke<Package[]>('get_recently_added_packages', { limit });
+    log.info(`getRecentlyAdded => ${result.length} apps`);
+    return result;
+  });
 }
 
 export async function getCategoryPackages(category: string, limit: number = 30): Promise<Package[]> {
